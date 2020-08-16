@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>marcosteodoro.dev</title>
+    <link href="https://marcosteodoro.dev" />
+    <link type="application/atom+xml" rel="self" href="https://marcosteodoro.dev/blog/feed.atom" />
+    <updated>2020-08-16T01:54:57-03:00</updated>
+    <id>https://marcosteodoro.dev/blog/feed.atom</id>
+    <author>
+        <name>Marcos Teodoro</name>
+    </author>
+                <entry>
+    <id>https://marcosteodoro.dev/blog/ambiente-desenvolvimento-laravel-docker</id>
+    <link type="text/html" rel="alternate" href="https://marcosteodoro.dev/blog/ambiente-desenvolvimento-laravel-docker" />
+    <title>Montando seu ambiente de desenvolvimento Laravel utilizando Docker(Debian e derivados)</title>
+    <published>2019-10-26T21:00:00-03:00</published>
+    <updated>2019-10-26T21:00:00-03:00</updated>
+    <author>
+        <name>Marcos Teodoro</name>
+    </author>
+    <summary type="html">Em breve teremos algumas postagens tratando alguns assuntos interessantes utilizando Laravel, e para aproveitar melhor esse tipo de conteúdo, nada melhor que um ambiente de desenvolvimento padronizado em nossas máquinas certo?!
+
+Neste post iremos......</summary>
+    <content type="html"><![CDATA[
+        <p>Em breve teremos algumas postagens tratando alguns assuntos interessantes utilizando Laravel, e para aproveitar melhor esse tipo de conteúdo, nada melhor que um ambiente de desenvolvimento padronizado em nossas máquinas certo?!</p>
+
+<p>Neste post iremos aprender como montar um ambiente de desenvolvimento completo para trabalhar principalmente com Laravel, porém, seguindo a mesma ideia é possível trabalhar com a maioria dos frameworks atuais de PHP.</p>
+
+<p>Tendo essa padronização, é possível que rodemos exatamente os mesmos comandos em qualquer máquina, independente do sistema operacional, que o ambiente de desenvolvimento que rodará o projeto será o mesmo!  Dessa forma, nunca mais temos aquele clássico problema de "no meu computador funciona".</p>
+
+<p>Para começar trabalhar com este ambiente devemos ter o <em>docker</em> e o <em>docker-compose</em> instalados em nossas máquinas (seja ela Windows, MAC ou Linux).</p>
+
+<p>Os passos para a instalação em uma máquina com sistema operacional <em>Debian</em> ou com alguma distro baseada no mesmo podem ser encontrados neste <a href="https://marcosteodoro.github.io/posts/dockerizando-seu-ambiente-de-desenvolvimento-php/">post</a>.</p>
+
+<p>Sem mais, vamos partir para a criação deste ambiente!</p>
+
+<h3><em>docker-compose.yaml</em></h3>
+
+<p>Em uma pasta de sua preferência (onde os arquivos do seu projeto irão ficar posteriormente), crie um arquivo chamado <em>docker-compose.yaml</em> com o seguinte conteúdo:</p>
+
+<script src="https://gist.github.com/marcosteodoro/06396ae7a243064903702cc547512ed8.js"></script>
+
+<p>O arquivo acima irá indicar todos os containeres que devem ser utilizados para a criação do ambiente que necessitamos para começar a desenvolver com o Laravel.</p>
+
+<p>Esse ambiente conta com PHP 7.3, banco de dados Postgres SQL e Redis. Os containeres de PHP são do projeto Ambientum, e facilitam bastante nossa vida na criação dessa estrutura. Para saber mais em relação ao Ambientum e o que mais é possível fazer com ele dê uma conferida no docker hub neste <a href="https://hub.docker.com/r/ambientum/php">link</a> ou no repositório do projeto no <a href="https://github.com/ambientum/ambientum">github</a>.</p>
+
+<p>Ainda no mesmo diretório, rode o seguinte comando para fazer o download das imagens e colocar todo o ambiente para rodar:</p>
+
+<p><code>docker-compose up -d</code></p>
+
+<p>A primeira vez que rodar esse comando, é normal que demore um pouco pois o comando realiza o download de todas as imagens necessárias para subir os containeres que o ambiente necessita.</p>
+
+<p>Após tudo executado, você terá o ambiente pronto para iniciar o trabalho com Laravel. Acessando o <a href="http://localhost:8080">localhost</a> de sua máquina na porta 8080, terá o retorno de <em>404 not found</em>, e é sinal que seu ambiente foi configurado e está funcionando de acordo, porém ainda não colocamos nenhum arquivo no <em>directory root</em> da aplicação para ser exibido. (Caso ocorra algum erro por conta de portas já utilizadas em sua máquina, basta mudar o bind de portas no arquivo <em>docker-compose.yaml</em>).</p>
+
+<p>Agora, mesmo sem ter o composer ou sequer o PHP em sua máquina, é possível que iniciemos um projeto Laravel, ou de qualquer outro projeto PHP, pois temos todas essas ferramentas configuradas no container!</p>
+
+<p>Vamos iniciar um novo projeto digitando o seguinte comando no terminal:</p>
+
+<p><code>docker-compose exec app composer create-project laravel/laravel my-awesome-project</code></p>
+
+<p>O comando acima executa o comando <em>composer create-project laravel/laravel my-awesome-project</em> dentro do container, e como o mesmo está com o mapeamento de volumes com nossa máquina, teremos acesso à todos os arquivos do projeto no diretório da aplicação, onde se encontra o arquivo <em>docker-compose.yaml</em>.</p>
+
+<p>Como resultado teremos o seguinte esquema de arquivos/diretórios em nossa aplicação:</p>
+
+<div class="align-center">
+    <img src="/images/project-structure-after-composer-create-project.png" alt="Estrutura diretórios">
+</div>
+
+<p>Aparentemente tudo funcionando de acordo, porém, acessando o <a href="http://localhost:8080">localhost</a> da aplicação, ainda temos aquele retorno de <em>404</em>...</p>
+
+<p>Isso ocorre, por conta do <em>directory root</em> da aplicação estar esperando uma pasta public, na raiz do projeto. Portanto devemos mover nosso projeto para a raiz, e é possível fazer isso com o seguinte comando:</p>
+
+<p><code>mv my-awesome-project/* ./ &amp;&amp; mv my-awesome-project/.* ./</code></p>
+
+<p>Agora sim, temos um projeto Laravel fresquinho para iniciarmos o desenvolvimento!</p>
+
+<p>E a pasta my-awesome-project da aplicação não tem mais motivo para existir, portanto podemos remove-lá com o seguinte comando:</p>
+
+<p><code>rm -rf my-awesome-project</code></p>
+
+<p>Com este mesmo arquivo <em>docker-compose.yaml</em> é possível rodarmos projetos já existentes também, e o processo fica bem facilitado nesse caso. Basta adicionar o mesmo na raiz do projeto e rodar o comando:</p>
+
+<p><code>docker-compose up -d</code></p>
+
+<p>Desta forma já teremos todo o ambiente necessário para rodar o projeto!</p>
+
+<p>Lembrando que, para realizar o acesso do banco de dados de dentro do container, é necessário usar o host <strong>postgres</strong>, assim como os outros serviços definidos e mapeados em nosso <em>docker-compose.yaml</em>.</p>
+
+<p>Em nossa máquina, graças aos binds, tudo pode ser acessado como <em>localhost</em>, como se fosse uma instalação realizada diretamente em nossa máquina.</p>
+
+<p>Qualquer dúvida só entrar em contato nos comentários abaixo.</p>
+    ]]></content>
+</entry>
+            <entry>
+    <id>https://marcosteodoro.dev/blog/dockerizando-seu-ambiente-de-desenvolvimento-php</id>
+    <link type="text/html" rel="alternate" href="https://marcosteodoro.dev/blog/dockerizando-seu-ambiente-de-desenvolvimento-php" />
+    <title>Dockerizando seu ambiente de desenvolvimento PHP (Debian e derivados)</title>
+    <published>2019-09-26T21:00:00-03:00</published>
+    <updated>2019-09-26T21:00:00-03:00</updated>
+    <author>
+        <name>Marcos Teodoro</name>
+    </author>
+    <summary type="html">Seguiremos agora com um passo a passo para montar seu ambiente de desenvolvimento PHP utilizando Docker e Docker Compose.
+
+Primeiramente, vamos realizar a instalação do Docker.
+
+
+
+O primeiro passo é realizar a remoção de instalações anteriores.......</summary>
+    <content type="html"><![CDATA[
+        <p>Seguiremos agora com um passo a passo para montar seu ambiente de desenvolvimento PHP utilizando <strong>Docker</strong> e <strong>Docker Compose</strong>.</p>
+
+<p>Primeiramente, vamos realizar a instalação do <strong>Docker</strong>.</p>
+
+<h3>Instalando o <strong>Docker</strong></h3>
+
+<p>O primeiro passo é realizar a remoção de instalações anteriores. Para isso digite o seguinte comando em seu terminal:</p>
+
+<p><code>sudo apt-get remove docker docker-engine docker.io containerd runc</code></p>
+
+<p>Agora iremos atualizar os dados de seu repositório <em>apt</em> com o seguinte comando:</p>
+
+<p><code>sudo apt-get update</code></p>
+
+<p>Instale os pacotes necessários para o processo:</p>
+
+<p><code>sudo apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common</code></p>
+
+<p>Adicione a chave GPG oficial do repositório do <strong>Docker</strong>:</p>
+
+<p><code>curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -</code></p>
+
+<p>Inclua o repositório do <strong>Docker</strong> em sua <em>source list</em> com o comando a seguir:</p>
+
+<p><code>sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"</code></p>
+
+<p>Com o procedimento anterior realizado já podemos partir efetivamente para a instalação do <strong>Docker</strong>.</p>
+
+<p>Vamos primeiro rodar uma atualização para sincronizar o novo repositório adicionado:</p>
+
+<p><code>sudo apt-get update</code></p>
+
+<p>E agora sim instalaremos os pacotes para rodar a ferramenta:</p>
+
+<p><code>sudo apt-get install docker-ce docker-ce-cli containerd.io</code></p>
+
+<p>Com tudo isso realizado temos uma instalação de <strong>Docker</strong> realizada.</p>
+
+<p>Para validar se tudo está funcionando de acordo, podemos rodar o seguinte comando:</p>
+
+<p><code>sudo docker run hello-world</code></p>
+
+<p>Caso tudo tenha sido instalado com sucesso, o comando a seguir deve realizar o download de uma imagem <strong>Docker</strong> e deve colocar a mesma para rodar. Caso ocorra algum erro reinicie os passos.</p>
+
+<p>Com a instalação realizada, podemos adicionar nosso usuário ao grupo do <strong>docker</strong> da máquina, possibilitando assim que rodemos os comandos sem a necessidade de utilizar o <em>sudo</em>. Para isso rode o seguinte comando em seu terminal:</p>
+
+<p><code>sudo usermod -aG docker $USER</code></p>
+
+<p>Ao reiniciar sua máquina será possível rodar os comandos do <strong>Docker</strong> sem utilizar o <em>sudo</em>:</p>
+
+<p><code>docker run hello-world</code></p>
+
+<h3>Instalando o <strong>Docker Compose</strong></h3>
+
+<p>À partir deste ponto já temos o <strong>Docker</strong> instalado e já validamos que o mesmo está funcionando corretamente. Agora podemos seguir adicionando o <strong>docker-compose</strong> à nossa máquina, pois o mesmo irá facilitar nossa vida com os ambientes que devemos subir para iniciar a programação.</p>
+
+<p>Inicialmente iremos realizar o download do script para rodar a ferramenta:</p>
+
+<p><code>sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose</code></p>
+
+<p>Após baixado o script, necessitamos dar as permissões necessárias para execução, e o comando a seguir as concede (caso altere o caminho de instalação do passo acima, o mesmo deve seguir o mesmo caminho no comando a seguir):</p>
+
+<p><code>sudo chmod +x /usr/local/bin/docker-compose</code></p>
+
+<p>Para que consigamos acessar os comandos do <strong>docker-compose</strong> globalmente, podemos adicionar o link a seguir:</p>
+
+<p><code>sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose</code></p>
+
+<p>O mesmo nos possibilita executar os comandos do <strong>docker-compose</strong> de qualquer lugar de nossa máquina.</p>
+
+<p>Apoś isso, podemos rodar o comando a seguir e ver se o retorno condiz com a versão atual do <strong>docker-compose</strong>:</p>
+
+<p><code>docker-compose --version</code></p>
+
+<h3>E agora, finalmente partiremos para nosso ambiente de programação PHP</h3>
+
+<p>Iremos utilizar um ambiente pré-figurado que pode ser encontrado neste <a href="https://github.com/marcosteodoro/docker-apache-php72-mariadb103">repositório</a>.</p>
+
+<p>O mesmo conta com o PHP versão 7.2, Apache 2 e o banco de dados MariaDB 10.3.</p>
+
+<p>Realize o clone do repositório em sua máquina com o seguinte comando:</p>
+
+<p><code>git clone https://github.com/marcosteodoro/docker-apache-php72-mariadb103.git</code></p>
+
+<p>Entre no repositório com o comando:</p>
+
+<p><code>cd docker-apache-php72-mariadb103</code></p>
+
+<p>E após isso podemos dar um:</p>
+
+<p><code>docker-compose up</code></p>
+
+<p>O comando irá realizar o download das imagens necessárias para o funcionamento do ambiente e já irá subir o mesmo. Com tudo rodando de acordo teremos um retorno de <em>phpinfo()</em> em nosso localhost.</p>
+
+<p>E por hoje é isso! Caso ocorra algum problema com a instalação ou em caso de qualquer dúvida só entrar em contato nos comentários abaixo.</p>
+    ]]></content>
+</entry>
+    </feed>
